@@ -1,0 +1,195 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{ulem}
+\newtheorem{theorem}{\indent 定理}[section]
+\newtheorem{lemma}[theorem]{\indent 引理}
+\newtheorem{proposition}[theorem]{\indent 命题}
+\newtheorem{corollary}[theorem]{\indent 推论}
+\newtheorem{definition}{\indent 定义}[section]
+\newtheorem{example}{\indent 例}[section]
+\newtheorem{remark}{\indent 注}[section]
+\newenvironment{solution}{\begin{proof}[\indent\bf 解]}{\end{proof}}
+\renewcommand{\proofname}{\indent\bf 证明}
+
+
+\title{pseudo-linear_infinite-time}
+\author{sizhe dou}
+\date{March 2026}
+
+\begin{document}
+
+\section{问题形式}
+研究一类非线性仿射系统的无限时域最优控制问题，该问题的数学形式为
+\begin{equation}
+    \begin{aligned}
+        \min\quad&J_0=\sum_{k=0}^\infty x_k^TQ(x_k)x_k+u_k^TR(x_k)u_k
+        \\s.t.\quad&x_{k+1}=A(x_k)x_k+B(x_k)u_k
+    \end{aligned}
+    \label{formulation}
+\end{equation}
+% 其中$Q(\cdot)\succeq0,R(\cdot)\succ0$
+% \begin{equation}
+%     \begin{aligned}
+%         \min\quad&J_0=\sum_{k=0}^\infty x_k^TQ(x_k)x_k+u_k^TR(x_k)u_k
+%         \\s.t.\quad&x_{k+1}=(I+\Delta TA(x_k))x_k+\Delta TB(x_k)u_k
+%     \end{aligned}
+%     \label{formulation-2}
+% \end{equation}
+
+\section{伪线性算法}
+对于迭代次数$n$，求解对应的有限时间线性系统最优控制问题
+\begin{equation}
+    \begin{aligned}
+        n=0:\ \min\ &J_0^{[0]}=x_1^{[0]\top}V(x_0)x_1^{[0]}+x_0^\top Q(x_0)x_0+u_0^\top R(x_0)u_0\\
+        s.t.\ &x_1^{[0]}=A(x_0)x_0+B(x_0)u_0\\
+        n=1:\ \min\ &J_0^{[1]}=x_2^{[1]\top}V(x_1^{[0]})x_2^{[1]}+\sum_{k=i}^{1}x_k^{[1]\top}Q(x_k^{[0]})x_k^{[1]}+u_k^\top R(x_k^{[0]})u_k\\
+        s.t.\ &x_2^{[1]}=A(x_1^{[0]})x_1^{[1]}+B(x_1^{[0]})u_1\\
+        \ &x_1^{[1]}=A(x_0)x_0+B(x_0)u_0\\
+        \vdots\quad\qquad\qquad&\\
+        n=l:\ \min\ &J_0^{[l]}=x_{l+1}^{[l]\top}V(x_l^{[l-1]})x_{l+1}^{[l]}+\sum_{k=i}^{l}x_k^{[l]}Q(x_k^{[l-1]})x_k^{[l]}+u_k^\top R(x_k^{[l-1]})u_k\\
+        s.t.\ &x_{k+1}^{[l]}=A(x_k^{[l-1]})x_k^{[l]}+B(x_k^{[l-1]})u_k,\quad k=0,1,\dots,l\\
+        \vdots\quad\qquad\qquad&
+    \end{aligned}
+    \label{iteration-formulation}
+\end{equation}
+
+% \begin{equation}
+%     \begin{aligned}
+%         n=0:\ \min\ &J_0^{[0]}=x_1^{[0]\top}V(x_0)x_1^{[0]}+x_0^\top Q(x_0)x_0+u_0^\top R(x_0)u_0\\
+%         s.t.\ &x_1^{[0]}=(I+\Delta TA(x_0))x_0++\Delta TB(x_0)u_0\\
+%         n=1:\ \min\ &J_i^{[1]}=x_2^{[1]\top}V(x_1^{[0]})x_2^{[1]}+\sum_{k=i}^{1}x_k^{[1]\top}Q(x_k^{[0]})x_k^{[1]}+u_k^\top R(x_k^{[0]})u_k\\
+%         s.t.\ &x_2^{[1]}=(I+\Delta TA(x_1^{[0]}))x_1^{[1]}+\Delta TB(x_1^{[0]})u_1\\
+%         \ &x_1^{[1]}=(I+\Delta A(x_0))x_0+\Delta B(x_0)u_0\\
+%         \vdots\quad\qquad\qquad&\\
+%         n=l:\ \min\ &J_i^{[l]}=x_{l+1}^{[l]\top}V(x_l^{[l-1]})x_{l+1}^{[l]}+\sum_{k=i}^{l}x_k^{[l]}Q(x_k^{[l-1]})x_k^{[l]}+u_k^\top R(x_k^{[l-1]})u_k\\
+%         s.t.\ &x_{k+1}^{[l]}=(I+\Delta TA(x_k^{[l-1]}))x_k^{[l]}+\Delta TB(x_k^{[l-1]})u_k,\\&\quad k=0,1,\dots,l\\
+%         \vdots\quad\qquad\qquad&
+%     \end{aligned}
+%     \label{iteration-formulation-2}
+% \end{equation}
+
+其中，$x_{k}^{[-1]}=x_0, x_0^{[l]}=x_0, \forall k,l$，
+且$V(x_k^{[l]})$是以下代数Riccati的唯一正定解
+\begin{equation}
+    \begin{aligned}
+        V(x_k^{[l]})=Q(x_k^{[l]})+A(x_k^{[l]})^\top V(x_k^{[l]})A(x_k^{[l]})-A(x_k^{[l]})^\top V(x_k^{[l]})B(x_k^{[l]})\\
+        \times\left(R(x_k^{[l]})+B^\top(x_k^{[l]})V(x_k^{[l]})B(x_k^{[l]})\right)^{-1}B^\top(x_k^{[l]})V(x_k^{[l]})A(x_k^{[l]})
+    \end{aligned}
+    \label{algebraic-riccati}
+\end{equation}
+% \begin{equation}
+%     \begin{aligned}
+%         V(x_k^{[l]}) = Q(x_k^{[l]}) &+ \left(I + \Delta T A(x_k^{[l]})\right)^\top V(x_k^{[l]}) \left(I + \Delta T A(x_k^{[l]})\right) \\
+%         &- \Delta T^2 \left(I + \Delta T A(x_k^{[l]})\right)^\top V(x_k^{[l]}) B(x_k^{[l]})\\
+%         &\quad \times \left( R(x_k^{[l]}) + \Delta T^2 B(x_k^{[l]})^\top V(x_k^{[l]}) B(x_k^{[l]}) \right)^{-1}\\
+%         &\quad \times B(x_k^{[l]})^\top V(x_k^{[l]}) \left(I + \Delta T A(x_k^{[l]})\right)
+%     \end{aligned}
+% \end{equation}
+% 且$V(\cdot)$为\textbf{任意正定的严格单调递增的李雅普诺夫函数}。\\
+对于任意的$n=l$，线性系统最优控制问题的最优控制律为
+\begin{equation}
+    \begin{aligned}
+        u_k^{[l]}&=-\left(R(x_k^{[l-1]})+B^\top(x_k^{[l-1]})P_{k+1}^{[l]}B(x_k^{[l-1]})\right)^{-1}\\
+                &\times B^\top(x_k^{[l-1]})P_{k+1}^{[l]}A(x_k^{[l-1]})x_k^{[l]},\quad k=l, l-1,\dots,0\\
+                &=-K_k^{[l]}x_k^{[l]},\quad k=l, l-1,\dots,0
+    \end{aligned}
+    \label{control-law}
+\end{equation}
+% \begin{equation}
+%     \begin{aligned}
+%         u_k^{[l]}&=-\Delta T\left(R(x_k^{[l-1]})+\Delta T^2B^\top(x_k^{[l-1]})P_{k+1}^{[l]}B(x_k^{[l-1]})\right)^{-1}\\
+%                 &\times B^\top(x_k^{[l-1]})P_{k+1}^{[l]}(I+\Delta TA(x_k^{[l-1]}))x_k^{[l]},\quad k=l, l-1,\dots,0\\
+%                 &=-K_k^{[l]}x_k^{[l]},\quad k=l, l-1,\dots,0
+%     \end{aligned}
+%     \label{control-law-2}
+% \end{equation}
+对任意$i=l, l-1, \dots, 0,P_k^{[i]}$满足迭代Riccati方程
+\begin{equation}
+    \begin{aligned}
+        P_k^{[i]}&=Q(x_k^{[i-1]})+A(x_k^{[i-1]})^\top P_{k+1}^{[i]}A(x_k^{[i-1]})-A(x_k^{[i-1]})^\top P_{k+1}^{[i]}B(x_k^{[i-1]})\\
+        &\times\left(R(x_k^{[i-1]})+B^\top(x_k^{[i-1]})P_{k+1}^{[i]}B(x_k^{[i-1]})\right)^{-1}B^\top(x_k^{[i-1]})P_{k+1}^{[i]}A(x_k^{[i-1]})
+    \end{aligned}
+\end{equation}
+% \begin{equation}
+%     \begin{aligned}
+%         P_k^{[i]} = Q(x_k^{[l]}) &+ \left(I + \Delta T A(x_k^{[i-1]})\right)^\top P_{k+1}^{[i]} \left(I + \Delta T A(x_k^{[i-1]})\right) \\
+%         &- \Delta T^2 \left(I + \Delta T A(x_k^{[i-1]})\right)^\top P_{k+1}^{[i]} B(x_k^{[i-1]})\\
+%         &\quad \times \left( R(x_k^{[l]}) + \Delta T^2 B(x_k^{[i-1]})^\top P_{k+1}^{[i]} B(x_k^{[i-1]}) \right)^{-1}\\
+%         &\quad \times B(x_k^{[i-1]})^\top P_{k+1}^{[i]} \left(I + \Delta T A(x_k^{[i-1]})\right)
+%     \end{aligned}
+% \end{equation}
+其中$P_{l+1}^{[l]}=V(x_l^{[l-1]})$，从后向前递推即可。\\
+任意的$n=l$对应的反馈控制系统为
+\begin{equation}
+    \begin{aligned}
+        x_{k+1}^{[l]}=\left(A(x_k^{[l-1]})-B(x_k^{[l-1]})K_k^{[l]}\right)x_k^{[l]}
+    \end{aligned}
+    \label{feedback-iteration-system}
+\end{equation}
+% \begin{equation}
+%     \begin{aligned}
+%         x_{k+1}^{[l]}=\left(I+\Delta TA(x_k^{[l-1]})-\Delta TB(x_k^{[l-1]})K_k^{[l]}\right)x_k^{[l]}
+%     \end{aligned}
+%     \label{feedback-iteration-system-2}
+% \end{equation}
+
+\section{性质(收敛性、最优性证明)}
+
+\begin{theorem}
+    对任意的$n=l,l+1$，在相应的最优控制律(\ref{control-law})作用下，两次迭代的最优代价函数为$J_0^{[l]},J_0^{[l+1]}$，最优的状态轨迹为$x_k^{[l]},x_k^{[l+1]}$，构造辅助函数$\Lambda^{[l]},\Gamma^{[l]}$满足
+    \begin{align}
+        \Gamma^{[l]}&=x_{l+1}^{[l]\top}V(x_{l+1}^{[l]})x_{l+1}^{[l]}+\sum_{k=0}^lx_k^{[l]\top}Q(x_k^{[l]})x_k^{[l]}+u_k^{[l]\top}R(x_k^{[l]})u_k^{[l]}\\
+        \Lambda^{[l]}&=x_{l+1}^{[l+1]\top}V(x_{l+1}^{[l]})x_{l+1}^{[l+1]}+\sum_{k=0}^lx_k^{[l+1]\top}Q(x_k^{[l]})x_k^{[l+1]}+u_k^{[l+1]\top}R(x_k^{[l]})u_k^{[l+1]}
+    \end{align}
+    则以下不等式成立
+    \begin{equation}
+        J_0^{[l]*}\ge\Gamma^{[l]}\ge\Lambda^{[l]}=J_0^{[l+1]*}
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    第一步，证明$\Lambda^{[l]}=J_0^{[l+1]*}$。由$J_0^{[l+1]}$定义，可得
+    \begin{equation}
+        \begin{aligned}
+            J_0^{[l+1]*}&=x_{l+2}^{[l+1]\top}V(x_{l+1}^{[l]})x_{l+2}^{[l+1]}+x_{l+1}^{[l+1]\top}Q(x_{l+1}^{[l]})x_{l+1}^{[l+1]}+u_{l+1}^{[l+1]\top}R(x_{l+1}^{[l]})u_{l+1}^{[l+1]}\\
+            &+\sum_{k=0}^lx_k^{[l+1]\top}Q(x_k^{[l]})x_k^{[l+1]}+u_k^{[l+1]\top}R(x_k^{[l]})u_k^{[l+1]}
+        \end{aligned}    
+    \end{equation}
+    将式(\ref{feedback-iteration-system})与式(\ref{control-law})代入上式中，利用式(\ref{algebraic-riccati})，即得
+    \begin{equation}
+        \begin{aligned}
+            J_0^{[l+1]*}&=x_{l+1}^{[l+1]\top}V(x_{l+1}^{[l]})x_{l+1}^{[l+1]}+\sum_{k=0}^lx_k^{[l+1]\top}Q(x_k^{[l]})x_k^{[l+1]}+u_k^{[l+1]\top}R(x_k^{[l]})u_k^{[l+1]}\\
+            &=\Lambda^{[l]}
+        \end{aligned}
+        \label{lambda-equality}
+    \end{equation}
+    第二步，证明$\Gamma^{[l]}\ge\Lambda^{[l]}$。由式(\ref{lambda-equality})，可知
+    $\Lambda^{[l]}$是第$l+1$次迭代对应的线性系统的最优代价，$\left\{x_k^{[l+1]},u_k^{[l+1]}\right\}_{k=0}^{l+1}$为该线性系统的最优轨迹与最优控制律。
+    而$\left\{x_k^{[l]},u_k^{[l]}\right\}_{k=0}^{l+1}$仅为满足当前线性系统方程的一组可行轨迹与可行控制律，根据最优代价的定义，必然有$\Gamma^{[l]}\ge\Lambda^{[l]}$。\\
+    \begin{equation}
+        \begin{aligned}
+            \Gamma^{[l]}&=\left(x_{l+1}^{\top}V(x_{l+1}^{[l]})x_{l+1}+\sum_{k=0}^lx_k^{\top}Q(x_k^{[l]})x_k+u_k^{\top}R(x_k^{[l]})u_k\right)\bigg|_{x_k=x_k^{[l]},u_k=u_k^{[l]}}\\
+            &\ge \min_{x_k,u_k}\left\{x_{l+1}^{\top}V(x_{l+1}^{[l]})x_{l+1}+\sum_{k=0}^lx_k^{\top}Q(x_k^{[l]})x_k+u_k^{\top}R(x_k^{[l]})u_k\right\}\\
+            &=\Lambda^{[l]}
+        \end{aligned}
+    \end{equation}
+    最后，证明$J_0^{[l]*}\ge\Gamma^{[l]}$。
+    \begin{equation}
+        \begin{aligned}
+            J_0^{[l]}-\Gamma^{[l]}&=x_{l+1}^{[l]\top}(V(x_l^{[l-1]})-V(x_{l+1}^{[l]}))x_{l+1}^{[l]}\\
+            &+\sum_{k=0}^{l}x_k^{[l]\top}(Q(x_k^{[l-1]})-Q(x_k^{[l]}))x_k^{[l]}+u_k^{[l]\top}(R(x_k^{[l-1]})-R(x_k^{[l]}))u_k^{[l]}\\
+        \end{aligned}
+    \end{equation}
+
+    % $J_0^{[l]*}=x_{l+1}^{[l]\top}V(x_l^{[l-1]})x_{l+1}^{[l]}+\sum_{k=0}^{l}x_k^{[l]}Q(x_k^{[l-1]})x_k^{[l]}+u_k^\top R(x_k^{[l-1]})u_k$\\
+    % $\Gamma^{[l]}=x_{l+1}^{[l]\top}V(x_l^{[l]})x_{l+1}^{[l]}+\sum_{k=0}^lx_k^{[l]\top}Q(x_k^{[l]})x_k^{[l]}+u_k^{[l]\top}R(x_k^{[l]})u_k^{[l]}$
+\end{proof}
+
+\end{document}
+
+
+%example
